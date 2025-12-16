@@ -27,13 +27,15 @@ import whole_body_tracking.tasks.tracking.mdp as mdp
 # Scene definition
 ##
 
+# 原值：x/y=±0.5, z=±0.2, roll/pitch=±0.52, yaw=±0.78
+# MuJoCo sim 调优：调大 20% 以增强抗扰动训练
 VELOCITY_RANGE = {
-    "x": (-0.5, 0.5),
-    "y": (-0.5, 0.5),
-    "z": (-0.2, 0.2),
-    "roll": (-0.52, 0.52),
-    "pitch": (-0.52, 0.52),
-    "yaw": (-0.78, 0.78),
+    "x": (-0.6, 0.6),      # 0.5 * 1.2
+    "y": (-0.6, 0.6),      # 0.5 * 1.2
+    "z": (-0.24, 0.24),    # 0.2 * 1.2
+    "roll": (-0.624, 0.624),   # 0.52 * 1.2
+    "pitch": (-0.624, 0.624),  # 0.52 * 1.2
+    "yaw": (-0.936, 0.936),    # 0.78 * 1.2
 }
 
 
@@ -86,13 +88,13 @@ class CommandsCfg:
         asset_name="robot",
         resampling_time_range=(1.0e9, 1.0e9),
         debug_vis=True,
-        pose_range={
-            "x": (-0.05, 0.05),
-            "y": (-0.05, 0.05),
-            "z": (-0.01, 0.01),
-            "roll": (-0.1, 0.1),
+        pose_range={#修改
+            "x": (-0.05, 0.05),#0.05->0.06，修改
+            "y": (-0.05, 0.05),#0.05->0.06
+            "z": (-0.01, 0.01),#0.01->0.011
+            "roll": (-0.1, 0.1),#0.1->0.11
             "pitch": (-0.1, 0.1),
-            "yaw": (-0.2, 0.2),
+            "yaw": (-0.2, 0.2),#0.2->0.22
         },
         velocity_range=VELOCITY_RANGE,
         joint_position_range=(-0.1, 0.1),
@@ -199,25 +201,27 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
+    # 原 std：pos=0.3, ori=0.4
+    # MuJoCo sim 调优：调高到 0.5/0.6 以提高误差容忍度
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
-        weight=0.5,
-        params={"command_name": "motion", "std": 0.3},
+        weight=0.5,#修改了 0.5->0.6
+        params={"command_name": "motion", "std": 0.5},  # 0.3 -> 0.5
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
-        weight=0.5,
-        params={"command_name": "motion", "std": 0.4},
+        weight=0.5,#修改了 0.5->0.6
+        params={"command_name": "motion", "std": 0.6},  # 0.4 -> 0.6
     )
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 0.3},
+        params={"command_name": "motion", "std": 0.5},  # 0.3 -> 0.5
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 0.4},
+        params={"command_name": "motion", "std": 0.6},  # 0.4 -> 0.6
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
@@ -229,15 +233,20 @@ class RewardsCfg:
         weight=1.0,
         params={"command_name": "motion", "std": 3.14},
     )
-    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-1e-1)
+    # 如 MuJoCo 抖动，可试 weight 調至 -0.15 或 -0.2；若动作跟不住则保留 -0.1 或再减小
+    action_rate_l2 = RewTerm(
+        func=mdp.action_rate_l2, 
+        weight=-0.1#修改了 -0.1 -> -0.14
+    )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
         weight=-10.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
+    # 若跌倒/脚以外触地频繁，可先把 weight 提到 -0.3（不建议一步到 -1.0）
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.1,
+        weight=-0.1,#修改了 -0.1 -> -0.25
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
@@ -255,19 +264,21 @@ class TerminationsCfg:
     """Termination terms for the MDP."""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
+    # 若频繁因髋/躯干下坠退出，可先把 threshold 放宽到 0.28~0.3；若想更严则降到 0.22
     anchor_pos = DoneTerm(
         func=mdp.bad_anchor_pos_z_only,
-        params={"command_name": "motion", "threshold": 0.25},
+        params={"command_name": "motion", "threshold": 0.25},#修改了 0.25 -> 0.26
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
         params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.8},
     )
+    # 若手/脚触地导致过早退出，可把 threshold 放宽到 0.3；若要严格限制则降到 0.22
     ee_body_pos = DoneTerm(
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.25,
+            "threshold": 0.25,#修改了 0.25 -> 0.26
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",

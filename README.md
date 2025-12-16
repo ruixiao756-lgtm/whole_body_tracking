@@ -160,3 +160,16 @@ Below is an overview of the code structure for this repository:
   Includes utility scripts for preprocessing motion data, training policies, and evaluating trained policies.
 
 This structure is designed to ensure modularity and ease of navigation for developers expanding the project.
+
+
+python scripts/csv_to_npz.py     --input_file /home/abc/GMR/dancetocsv/csv/dance_retargeted.csv     --input_fps 30     --output_name dance     --headless
+
+ 1677  python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/dance     --headless     --logger wandb     --log_project_name my_dance_project     --run_name dance_experiment
+
+ 1678  python scripts/rsl_rl/play.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --num_envs=2     --wandb_path="1755247252-harbin-institute-of-technology/my_dance_project/4b7qi9co"
+
+python scripts/replay_npz.py --registry_name={your-organization}-org/wandb-registry-motions/{motion_name}
+
+ python scripts/replay_npz.py --registry_name=1755247252-harbin-institute-of-technology-org/wandb-registry-motions/dance
+
+ 1755247252-harbin-institute-of-technology/my_dance_project/Tracking-Flat-G1-Wo-State-Estimation-v0/4b7qi9co
