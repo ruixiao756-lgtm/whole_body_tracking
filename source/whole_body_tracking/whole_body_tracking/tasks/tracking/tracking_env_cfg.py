@@ -201,57 +201,56 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    # 原 std：pos=0.3, ori=0.4
-    # MuJoCo sim 调优：调高到 0.5/0.6 以提高误差容忍度
+    # 激进化参数配置（基于env.yaml优化）
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
-        weight=0.5,#修改了 0.5->0.6
-        params={"command_name": "motion", "std": 0.5},  # 0.3 -> 0.5
+        weight=0.5,
+        params={"command_name": "motion", "std": 3.3},  # 激进：放宽全局锚点位置容忍度
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
-        weight=0.5,#修改了 0.5->0.6
-        params={"command_name": "motion", "std": 0.6},  # 0.4 -> 0.6
+        weight=0.5,
+        params={"command_name": "motion", "std": 3.2},  # 激进：放宽全局姿态容忍度
     )
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 0.5},  # 0.3 -> 0.5
+        params={"command_name": "motion", "std": 0.8},  # 激进：允许更大幅度的抬腿动作
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 0.6},  # 0.4 -> 0.6
+        params={"command_name": "motion", "std": 1.6},  # 激进：允许更大的身体姿态偏差
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 1.0},
+        params={"command_name": "motion", "std": 2.2},  # 激进：允许更快的线速度
     )
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 3.14},
+        params={"command_name": "motion", "std": 6.45},  # 激进：放宽角速度限制
     )
-    # 如 MuJoCo 抖动，可试 weight 調至 -0.15 或 -0.2；若动作跟不住则保留 -0.1 或再减小
+    # 激进化：减小动作平滑惩罚，允许更激烈的动作变化
     action_rate_l2 = RewTerm(
         func=mdp.action_rate_l2, 
-        weight=-0.1#修改了 -0.1 -> -0.14
+        weight=-0.18  # 激进：-0.1 -> -0.18，允许更激烈的动作
     )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
-        weight=-10.0,
+        weight=-5.0,  # 从 -10.0 -> -5.0，减轻关节限制惩罚
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
-    # 若跌倒/脚以外触地频繁，可先把 weight 提到 -0.3（不建议一步到 -1.0）
+    # 激进化：强化非脚部接触惩罚以提升稳定性
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.1,#修改了 -0.1 -> -0.25
+        weight=-0.11,  # 激进配置值
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
                 body_names=[
-                    r"^(?!left_ankle_roll_link$)(?!right_ankle_roll_link$)(?!left_wrist_yaw_link$)(?!right_wrist_yaw_link$).+$"
+                    r"^(?!left_ankle_roll_link$)(?!right_ankle_roll_link$)(?!left_wrist_yaw_link$)(?!right_wrist_yaw_link$)(?!left_knee_link$)(?!right_knee_link$).+$"
                 ],
             ),
             "threshold": 1.0,
@@ -264,21 +263,21 @@ class TerminationsCfg:
     """Termination terms for the MDP."""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
-    # 若频繁因髋/躯干下坠退出，可先把 threshold 放宽到 0.28~0.3；若想更严则降到 0.22
+    # 激进化：放宽anchor终止阈值，允许更多探索
     anchor_pos = DoneTerm(
         func=mdp.bad_anchor_pos_z_only,
-        params={"command_name": "motion", "threshold": 0.25},#修改了 0.25 -> 0.26
+        params={"command_name": "motion", "threshold": 0.4},  # 激进：0.25 -> 0.4
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
         params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.8},
     )
-    # 若手/脚触地导致过早退出，可把 threshold 放宽到 0.3；若要严格限制则降到 0.22
+    # 激进化：放宽手脚位置终止阈值
     ee_body_pos = DoneTerm(
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.25,#修改了 0.25 -> 0.26
+            "threshold": 0.4,  # 激进：0.25 -> 0.4
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",
