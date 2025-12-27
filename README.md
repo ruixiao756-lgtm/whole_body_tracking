@@ -173,3 +173,5 @@ python scripts/replay_npz.py --registry_name={your-organization}-org/wandb-regis
  python scripts/replay_npz.py --registry_name=1755247252-harbin-institute-of-technology-org/wandb-registry-motions/dance
 
  1755247252-harbin-institute-of-technology/my_dance_project/Tracking-Flat-G1-Wo-State-Estimation-v0/4b7qi9co
+
+python scripts/rsl_rl/play.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --num_envs=2     --wandb_path="1755247252-harbin-institute-of-technology/my_dance_project/kijl5w5z"--checkpoint model_17500.pt 
