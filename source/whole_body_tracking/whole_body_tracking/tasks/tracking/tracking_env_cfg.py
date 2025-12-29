@@ -205,7 +205,7 @@ class RewardsCfg:
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
         weight=0.5,
-        params={"command_name": "motion", "std": 3.3},  # 激进：放宽全局锚点位置容忍度
+        params={"command_name": "motion", "std": 3.2},  # 激进：放宽全局锚点位置容忍度
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
