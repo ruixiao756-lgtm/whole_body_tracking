@@ -201,51 +201,52 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    # 激进化参数配置（基于env.yaml优化）
+    # 恢复原始稳定配置，用户只关心动作还原不关心全局位置
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
-        weight=0.6,
-        params={"command_name": "motion", "std": 3},  # 激进：放宽全局锚点位置容忍度
+        weight=0.5,  # 保持原始值：低优先级
+        params={"command_name": "motion", "std": 3.0},  # 3.2->3.0: 恢复原始稳定值
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
-        weight=0.6,
-        params={"command_name": "motion", "std": 3},  # 激进：放宽全局姿态容忍度
+        weight=0.5,  # 保持原始值
+        params={"command_name": "motion", "std": 3.0},  # 3.2->3.0: 恢复原始稳定值
     )
+    # 关键：收紧std提升舞蹈动作还原度，同时保证稳定性
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
-        weight=1.0,
-        params={"command_name": "motion", "std": 0.8},  # 激进：允许更大幅度的抬腿动作
+        weight=1.1,  # 1.0->1.2: 提高权重增强还原度
+        params={"command_name": "motion", "std": 0.9},  # 
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
-        weight=1.0,
-        params={"command_name": "motion", "std": 1.6},  # 激进：允许更大的身体姿态偏差
+        weight=1.1,  # 1.0->1.2: 与body_pos同步提升
+        params={"command_name": "motion", "std": 1.6},  # 1.6->1.4: 适度收紧姿态容忍
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 2.2},  # 激进：允许更快的线速度
+        params={"command_name": "motion", "std": 2.1},  # 2.2->2.0: 恢复原始稳定值
     )
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 6.45},  # 激进：放宽角速度限制
+        params={"command_name": "motion", "std": 6.35},  # 6.45->6.28: 恢复原始稳定值
     )
-    # 激进化：减小动作平滑惩罚，允许更激烈的动作变化
+    # 关键：恢复原始惩罚保证动作平滑性，防止摇摆
     action_rate_l2 = RewTerm(
         func=mdp.action_rate_l2, 
-        weight=-0.16  # 激进：-0.1 -> -0.18，允许更激烈的动作
+        weight=-0.18  # -0.18->-0.2: 恢复原始值，保证稳定性
     )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
-        weight=-5.0,  # 从 -10.0 -> -5.0，减轻关节限制惩罚
+        weight=-4.8,  # 
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
     # 激进化：强化非脚部接触惩罚以提升稳定性
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.11,  # 激进配置值
+        weight=-0.14,  # 激进配置值
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
