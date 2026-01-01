@@ -18,7 +18,7 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
-        clip_param=0.21  # 保持稳定值
+        clip_param=0.21,  # 保持稳定值
         entropy_coef=0.007,  # 0.0052->0.006: 适度提升探索
         num_learning_epochs=5,
         num_mini_batches=6,  # 
