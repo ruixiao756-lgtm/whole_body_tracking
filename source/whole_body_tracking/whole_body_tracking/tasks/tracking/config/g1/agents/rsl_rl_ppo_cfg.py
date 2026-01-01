@@ -18,13 +18,13 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
-        clip_param=0.23,  # 0.2->0.25: 允许更大策略更新，突破保守局部最优
+        clip_param=0.22,  # 0.2->0.25: 允许更大策略更新，突破保守局部最优
         entropy_coef=0.007,  # 0.006->0.008: 增强探索，当前noise=0.22太低
         num_learning_epochs=5,
         num_mini_batches=6,  # 4->6: 更多mini-batch提升样本利用率
         learning_rate=9.6e-4,  # 9.6e-4->9.5e-4: 微调稳定性
         schedule="adaptive",
-        gamma=0.983,  # 0.988->0.983: 16步rollout需更低gamma，关注短期奖励
+        gamma=0.986,  # 0.988->0.983: 16步rollout需更低gamma，关注短期奖励
         lam=0.93,  # 0.94->0.93: 同上，降低长期依赖
         desired_kl=0.011,  # 0.0097->0.013: 放宽策略变化限制，加速学习
         max_grad_norm=1.0,

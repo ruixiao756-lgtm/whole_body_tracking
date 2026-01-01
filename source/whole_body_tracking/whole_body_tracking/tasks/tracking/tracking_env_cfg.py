@@ -204,13 +204,13 @@ class RewardsCfg:
     # 激进化参数配置（基于env.yaml优化）
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
-        weight=0.5,
-        params={"command_name": "motion", "std": 3.2},  # 激进：放宽全局锚点位置容忍度
+        weight=0.6,
+        params={"command_name": "motion", "std": 3},  # 激进：放宽全局锚点位置容忍度
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
-        weight=0.5,
-        params={"command_name": "motion", "std": 3.2},  # 激进：放宽全局姿态容忍度
+        weight=0.6,
+        params={"command_name": "motion", "std": 3},  # 激进：放宽全局姿态容忍度
     )
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
@@ -235,7 +235,7 @@ class RewardsCfg:
     # 激进化：减小动作平滑惩罚，允许更激烈的动作变化
     action_rate_l2 = RewTerm(
         func=mdp.action_rate_l2, 
-        weight=-0.18  # 激进：-0.1 -> -0.18，允许更激烈的动作
+        weight=-0.16  # 激进：-0.1 -> -0.18，允许更激烈的动作
     )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
