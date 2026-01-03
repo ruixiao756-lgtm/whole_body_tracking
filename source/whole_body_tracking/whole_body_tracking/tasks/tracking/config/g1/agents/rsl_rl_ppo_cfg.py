@@ -19,7 +19,7 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.21,  # 保持稳定值
-        entropy_coef=0.007,  # 0.0052->0.006: 适度提升探索
+        entropy_coef=0.0085,  # 0.0052->0.006: 适度提升探索
         num_learning_epochs=5,
         num_mini_batches=6,  # 
         learning_rate=1.0e-3,  # 1.1e-3->1.0e-3: 稍降以提升稳定性

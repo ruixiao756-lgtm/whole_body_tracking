@@ -216,17 +216,17 @@ class RewardsCfg:
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
         weight=1.1,  # 1.0->1.2: 提高权重增强还原度
-        params={"command_name": "motion", "std": 0.9},  # 
+        params={"command_name": "motion", "std": 0.75},  # 
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
         weight=1.1,  # 1.0->1.2: 与body_pos同步提升
-        params={"command_name": "motion", "std": 1.6},  # 1.6->1.4: 适度收紧姿态容忍
+        params={"command_name": "motion", "std": 1.4},  # 1.6->1.4: 适度收紧姿态容忍
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 2.1},  # 2.2->2.0: 恢复原始稳定值
+        params={"command_name": "motion", "std": 2.3},  # 2.2->2.0: 恢复原始稳定值
     )
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
@@ -240,7 +240,7 @@ class RewardsCfg:
     )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
-        weight=-4.8,  # 
+        weight=-4.6,  # 
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
     # 激进化：强化非脚部接触惩罚以提升稳定性
@@ -278,7 +278,7 @@ class TerminationsCfg:
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.4,  # 激进：0.25 -> 0.4
+            "threshold": 0.44,  # 激进：0.25 -> 0.4
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",

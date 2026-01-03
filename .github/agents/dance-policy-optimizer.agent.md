@@ -23,7 +23,7 @@ Instructions
 读取数据：查看训练曲线图。重点关注：
 总损失曲线：是否收敛？是平稳下降还是震荡？
 误差分解曲线：跟踪误差和稳定性惩罚随训练步骤的变化趋势。两者是否平衡？
-
+阅读当前参数文件：对比当前参数与参考参数，找出主要差异，当前参数文件路径“/home/abc/whole_body_tracking/source/whole_body_tracking/whole_body_tracking/tasks/tracking/tracking_env_cfg.py”，“/home/abc/whole_body_tracking/source/whole_body_tracking/whole_body_tracking/tasks/tracking/config/g1/agents/rsl_rl_ppo_cfg.py“，参考参数文件路径“/home/abc/whole_body_tracking/envoriginal.yaml”。
 诊断问题：结合图像和参考参数，形成初步判断。
 
 阶段 2：提出参数调整建议
