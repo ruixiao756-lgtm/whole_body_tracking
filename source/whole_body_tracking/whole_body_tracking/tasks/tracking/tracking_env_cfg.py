@@ -162,9 +162,9 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.3, 1.6),
-            "dynamic_friction_range": (0.3, 1.2),
-            "restitution_range": (0.0, 0.5),
+            "static_friction_range": (0.2, 2.0),  # 扩大范围：0.3-1.6 -> 0.2-2.0
+            "dynamic_friction_range": (0.2, 1.5),  # 扩大范围：0.3-1.2 -> 0.2-1.5
+            "restitution_range": (0.0, 0.7),  # 扩大范围：0.5 -> 0.7
             "num_buckets": 64,
         },
     )
@@ -184,7 +184,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
-            "com_range": {"x": (-0.025, 0.025), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
+            "com_range": {"x": (-0.035, 0.035), "y": (-0.07, 0.07), "z": (-0.07, 0.07)},  # 增大40%
         },
     )
 
@@ -233,20 +233,20 @@ class RewardsCfg:
         weight=1.0,
         params={"command_name": "motion", "std": 6.30},  # 6.45->6.28: 恢复原始稳定值
     )
-    # 关键：恢复原始惩罚保证动作平滑性，防止摇摆
+    # 关键：强化动作平滑性，提升稳定性（mujoco sim专用）
     action_rate_l2 = RewTerm(
         func=mdp.action_rate_l2, 
-        weight=-0.17  # -0.18->-0.2: 恢复原始值，保证稳定性
+        weight=-0.25  # -0.17->-0.25: 更强的平滑性约束，防止急动作
     )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
         weight=-4.6,  # 
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
-    # 激进化：强化非脚部接触惩罚以提升稳定性
+    # 激进化：强化非脚部接触惩罚以提升稳定性（mujoco sim增强）
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.14,  # 激进配置值
+        weight=-0.25,  # -0.14->-0.25: 显著增强惩罚，严格避免异常接触
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
@@ -256,6 +256,18 @@ class RewardsCfg:
             ),
             "threshold": 1.0,
         },
+    )
+    # 新增：joint velocity惩罚，限制关节速度防止剧烈运动
+    joint_vel = RewTerm(
+        func=mdp.joint_vel_l2,
+        weight=-0.0005,  # 较小惩罚，避免过度限制
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
+    )
+    # 新增：关节加速度惩罚，进一步增强平滑性
+    joint_acc = RewTerm(
+        func=mdp.joint_acc_l2,
+        weight=-2.0e-7,  # 极小惩罚，但对稳定性有帮助
+        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
 
 
@@ -273,12 +285,12 @@ class TerminationsCfg:
         func=mdp.bad_anchor_ori,
         params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.8},
     )
-    # 激进化：放宽手脚位置终止阈值
+    # 平衡：适度收紧手脚位置终止阈值，提升泛化性
     ee_body_pos = DoneTerm(
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.46,  # 激进：0.25 -> 0.4
+            "threshold": 0.40,  # 0.46->0.40: 收紧阈值，避免过度激进
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",
