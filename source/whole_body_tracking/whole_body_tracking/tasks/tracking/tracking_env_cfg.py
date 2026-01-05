@@ -162,9 +162,9 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.2, 2.0),  # 扩大范围：0.3-1.6 -> 0.2-2.0
-            "dynamic_friction_range": (0.2, 1.5),  # 扩大范围：0.3-1.2 -> 0.2-1.5
-            "restitution_range": (0.0, 0.7),  # 扩大范围：0.5 -> 0.7
+            "static_friction_range": (0.2, 1.8),  # 扩大范围：0.3-1.6 -> 0.2-1.8
+            "dynamic_friction_range": (0.2, 1.4),  # 扩大范围：0.3-1.2 -> 0.2-1.4
+            "restitution_range": (0.0, 0.6),  # 扩大范围：0.5 -> 0.6
             "num_buckets": 64,
         },
     )
@@ -201,27 +201,27 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    # 恢复原始稳定配置，用户只关心动作还原不关心全局位置
+    # 提升全局姿态稳定性权重（整体平衡比局部精度更重要！）
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
-        weight=0.5,  # 保持原始值：低优先级
-        params={"command_name": "motion", "std": 3.0},  # 3.2->3.0: 恢复原始稳定值
+        weight=0.5,  # 保持原值
+        params={"command_name": "motion", "std": 3.0},
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
-        weight=0.5,  # 保持原始值
-        params={"command_name": "motion", "std": 3.0},  # 3.2->3.0: 恢复原始稳定值
+        weight=0.55,  # 0.5->0.55: 提高姿态稳定性权重
+        params={"command_name": "motion", "std": 2.8},  # 3.0->2.5: 适度收紧
     )
-    # 关键：收紧std提升舞蹈动作还原度，同时保证稳定性
+    # 平衡调整：降低跟踪权重，允许为平衡而偏离参考（关键！）
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
-        weight=1.1,  # 1.0->1.2: 提高权重增强还原度
-        params={"command_name": "motion", "std": 0.69},  # 
+        weight=1.1,  
+        params={"command_name": "motion", "std": 0.7},  # 0.69->0.72: 适当放宽
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
-        weight=1.1,  # 1.0->1.2: 与body_pos同步提升
-        params={"command_name": "motion", "std": 1.3},  # 1.6->1.4: 适度收紧姿态容忍
+        weight=1.1,  
+        params={"command_name": "motion", "std": 1.3},  # 1.3->1.35: 轻微放宽
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
@@ -231,12 +231,12 @@ class RewardsCfg:
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 6.30},  # 6.45->6.28: 恢复原始稳定值
+        params={"command_name": "motion", "std": 6.35},  # 6.45->6.28: 恢复原始稳定值
     )
-    # 关键：强化动作平滑性，提升稳定性（mujoco sim专用）
+    # 平衡：适度约束动作变化，既允许快速平衡调整又防止过激动作
     action_rate_l2 = RewTerm(
         func=mdp.action_rate_l2, 
-        weight=-0.25  # -0.17->-0.25: 更强的平滑性约束，防止急动作
+        weight=-0.18  # -0.17->-0.18: 适度提高，平衡灵活性和平滑性
     )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
@@ -246,7 +246,7 @@ class RewardsCfg:
     # 激进化：强化非脚部接触惩罚以提升稳定性（mujoco sim增强）
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.25,  # -0.14->-0.25: 显著增强惩罚，严格避免异常接触
+        weight=-0.18,  # 保持较强惩罚，避免异常接触
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
@@ -257,17 +257,23 @@ class RewardsCfg:
             "threshold": 1.0,
         },
     )
-    # 新增：joint velocity惩罚，限制关节速度防止剧烈运动
-    joint_vel = RewTerm(
-        func=mdp.joint_vel_l2,
-        weight=-0.0005,  # 较小惩罚，避免过度限制
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
+    # 新增：强化基座姿态稳定（关键！防止过度后仰+鼓励主动平衡）
+    base_orientation = RewTerm(
+        func=mdp.flat_orientation_l2,
+        weight=0.55,  # 0.5->0.55: 提高权重，严格防止后仰等危险姿态
+        params={"asset_cfg": SceneEntityCfg("robot")},
     )
-    # 新增：关节加速度惩罚，进一步增强平滑性
-    joint_acc = RewTerm(
-        func=mdp.joint_acc_l2,
-        weight=-2.0e-7,  # 极小惩罚，但对稳定性有帮助
-        params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
+    # 新增：惩罚基座角速度过大（防止摇晃但不限制平衡调整）
+    base_ang_vel_penalty = RewTerm(
+        func=mdp.base_ang_vel_l2,
+        weight=-0.03,  # 较小惩罚，只约束剧烈旋转
+        params={"asset_cfg": SceneEntityCfg("robot")},
+    )
+    # 新增：惩罚基座线速度（帮助初始姿态稳定，防止启动时漂移）
+    base_lin_vel_penalty = RewTerm(
+        func=mdp.base_lin_vel_l2,
+        weight=-0.01,  # 轻微惩罚，稳定初始阶段
+        params={"asset_cfg": SceneEntityCfg("robot")},
     )
 
 
@@ -283,7 +289,7 @@ class TerminationsCfg:
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
-        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.8},
+        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.7},  # 0.8->0.7: 收紧以防止过度后仰
     )
     # 平衡：适度收紧手脚位置终止阈值，提升泛化性
     ee_body_pos = DoneTerm(
