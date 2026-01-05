@@ -257,24 +257,6 @@ class RewardsCfg:
             "threshold": 1.0,
         },
     )
-    # 新增：强化基座姿态稳定（关键！防止过度后仰+鼓励主动平衡）
-    base_orientation = RewTerm(
-        func=mdp.flat_orientation_l2,
-        weight=0.55,  # 0.5->0.55: 提高权重，严格防止后仰等危险姿态
-        params={"asset_cfg": SceneEntityCfg("robot")},
-    )
-    # 新增：惩罚基座角速度过大（防止摇晃但不限制平衡调整）
-    base_ang_vel_penalty = RewTerm(
-        func=mdp.base_ang_vel_l2,
-        weight=-0.03,  # 较小惩罚，只约束剧烈旋转
-        params={"asset_cfg": SceneEntityCfg("robot")},
-    )
-    # 新增：惩罚基座线速度（帮助初始姿态稳定，防止启动时漂移）
-    base_lin_vel_penalty = RewTerm(
-        func=mdp.base_lin_vel_l2,
-        weight=-0.01,  # 轻微惩罚，稳定初始阶段
-        params={"asset_cfg": SceneEntityCfg("robot")},
-    )
 
 
 @configclass
@@ -289,7 +271,7 @@ class TerminationsCfg:
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
-        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.7},  # 0.8->0.7: 收紧以防止过度后仰
+        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.66},  # 0.8->0.7: 收紧以防止过度后仰
     )
     # 平衡：适度收紧手脚位置终止阈值，提升泛化性
     ee_body_pos = DoneTerm(
