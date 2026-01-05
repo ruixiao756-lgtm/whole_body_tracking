@@ -10,7 +10,7 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     experiment_name = "g1_flat"
     empirical_normalization = True
     policy = RslRlPpoActorCriticCfg(
-        init_noise_std=1.0,
+        init_noise_std=1.2,
         actor_hidden_dims=[512, 256, 128],
         critic_hidden_dims=[512, 256, 128],
         activation="elu",
@@ -19,14 +19,14 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.21,  # 保持稳定值
-        entropy_coef=0.01,  # 0.0052->0.006: 适度提升探索
+        entropy_coef=0.015,  # 0.005->0.016: 
         num_learning_epochs=5,
-        num_mini_batches=6,  # 
+        num_mini_batches=6,  # 6->8: 提升样本效率，改善后期增长
         learning_rate=1.0e-3,  # 1.1e-3->1.0e-3: 稍降以提升稳定性
         schedule="adaptive",
-        gamma=0.986,  # 0.992->0.985: 关键!降低适配16步rollout
+        gamma=0.988,  # 0.992->0.985: 关键!降低适配16步rollout
         lam=0.93,  # 0.95->0.93: 同上，适配更短时间跨度
-        desired_kl=0.01,  # 0.0105->0.01: 稍降保稳定
+        desired_kl=0.0102,  # 0.0105->0.01: 稍降保稳定
         max_grad_norm=1.0,
     )
 

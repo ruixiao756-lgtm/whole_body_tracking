@@ -216,7 +216,7 @@ class RewardsCfg:
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
         weight=1.1,  # 1.0->1.2: 提高权重增强还原度
-        params={"command_name": "motion", "std": 0.7},  # 
+        params={"command_name": "motion", "std": 0.69},  # 
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
@@ -231,7 +231,7 @@ class RewardsCfg:
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 6.35},  # 6.45->6.28: 恢复原始稳定值
+        params={"command_name": "motion", "std": 6.30},  # 6.45->6.28: 恢复原始稳定值
     )
     # 关键：恢复原始惩罚保证动作平滑性，防止摇摆
     action_rate_l2 = RewTerm(
