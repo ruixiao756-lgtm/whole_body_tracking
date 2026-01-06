@@ -204,49 +204,49 @@ class RewardsCfg:
     # 提升全局姿态稳定性权重（整体平衡比局部精度更重要！）
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
-        weight=0.5,  # 保持原值
-        params={"command_name": "motion", "std": 3.0},
+        weight=0.45,  # 保持原值
+        params={"command_name": "motion", "std": 3.2},
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
-        weight=0.55,  # 0.5->0.55: 提高姿态稳定性权重
-        params={"command_name": "motion", "std": 2.8},  # 3.0->2.5: 适度收紧
+        weight=0.45,  # 0.5->0.55: 提高姿态稳定性权重
+        params={"command_name": "motion", "std": 3.2},  # 3.0->2.5: 适度收紧
     )
-    # 平衡调整：降低跟踪权重，允许为平衡而偏离参考（关键！）
+
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
         weight=1.1,  
-        params={"command_name": "motion", "std": 0.7},  # 0.69->0.72: 适当放宽
+        params={"command_name": "motion", "std": 0.65},  # 0.6
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
         weight=1.1,  
-        params={"command_name": "motion", "std": 1.3},  # 1.3->1.35: 轻微放宽
+        params={"command_name": "motion", "std": 1.4},  # 1.5
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 2.3},  # 2.2->2.0: 恢复原始稳定值
+        params={"command_name": "motion", "std": 1.9},  # 2.0: 恢复原始稳定值
     )
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 6.35},  # 6.45->6.28: 恢复原始稳定值
+        params={"command_name": "motion", "std": 6.20},  # 6.28: 恢复原始稳定值
     )
     # 平衡：适度约束动作变化，既允许快速平衡调整又防止过激动作
     action_rate_l2 = RewTerm(
         func=mdp.action_rate_l2, 
-        weight=-0.18  # -0.17->-0.18: 适度提高，平衡灵活性和平滑性
+        weight=-0.16  # -0.11
     )
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
-        weight=-4.6,  # 
+        weight=-4.8,  # 
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
     # 激进化：强化非脚部接触惩罚以提升稳定性（mujoco sim增强）
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.18,  # 保持较强惩罚，避免异常接触
+        weight=-0.14,  # 0.18->0.22: 提高惩罚
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
@@ -257,28 +257,48 @@ class RewardsCfg:
             "threshold": 1.0,
         },
     )
-
+    # 关键：使用isaaclab内置的flat_orientation_l2惩罚后仰/前倾（独立于参考动作）
+    flat_orientation = RewTerm(
+        func=mdp.flat_orientation_l2,
+        weight=-0.10,  # 负权重：惩罚偏离水平，强制保持直立
+        params={"asset_cfg": SceneEntityCfg("robot")},
+    )
+    # 新增：惩罚基座xy轴角速度（防止摇晃）
+    ang_vel_xy = RewTerm(
+        func=mdp.ang_vel_xy_l2,
+        weight=-0.02,  # 轻微惩罚，防止剧烈摇晃
+        params={"asset_cfg": SceneEntityCfg("robot")},
+    )
+    # feet_air_time = RewTerm(
+    #     func=mdp.feet_air_time,
+    #     weight=0.125,
+    #     params={
+    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*FOOT"),
+    #         "command_name": "base_velocity",
+    #         "threshold": 0.5,
+    #     },
+    # )
+    
 
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
-    # 激进化：放宽anchor终止阈值，允许更多探索
     anchor_pos = DoneTerm(
         func=mdp.bad_anchor_pos_z_only,
-        params={"command_name": "motion", "threshold": 0.4},  # 激进：0.25 -> 0.4
+        params={"command_name": "motion", "threshold": 0.45},  # 0.4
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
-        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.66},  # 0.8->0.7: 收紧以防止过度后仰
+        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.60},  # 0.8
     )
     # 平衡：适度收紧手脚位置终止阈值，提升泛化性
     ee_body_pos = DoneTerm(
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.40,  # 0.46->0.40: 收紧阈值，避免过度激进
+            "threshold": 0.42,  # 0.46->0.40: 收紧阈值，避免过度激进
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",
