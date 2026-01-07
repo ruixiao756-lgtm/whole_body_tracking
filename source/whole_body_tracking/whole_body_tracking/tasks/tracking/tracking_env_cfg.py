@@ -245,7 +245,7 @@ class RewardsCfg:
     # 激进化：强化非脚部接触惩罚以提升稳定性（mujoco sim增强）
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.14,  # 0.11
+        weight=-0.15,  # 0.11
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
