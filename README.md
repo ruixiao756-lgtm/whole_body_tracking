@@ -161,6 +161,7 @@ Below is an overview of the code structure for this repository:
 
 This structure is designed to ensure modularity and ease of navigation for developers expanding the project.
 
+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
 
 python scripts/csv_to_npz.py     --input_file /home/abc/GMR/dancetocsv/csv/dance_retargeted.csv     --input_fps 30     --output_name dance     --headless
 
@@ -174,4 +175,24 @@ python scripts/replay_npz.py --registry_name={your-organization}-org/wandb-regis
 
  1755247252-harbin-institute-of-technology/my_dance_project/Tracking-Flat-G1-Wo-State-Estimation-v0/4b7qi9co
 
-python scripts/rsl_rl/play.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --num_envs=2     --wandb_path="1755247252-harbin-institute-of-technology/my_dance_project/kijl5w5z"--checkpoint model_17500.pt 
+python scripts/rsl_rl/play.py \
+    --task=Tracking-Flat-G1-Wo-State-Estimation-v0 \
+    --num_envs=2 \
+    --wandb_path="1755247252-harbin-institute-of-technology/my_dance_project/l1pbv3vo/model_9000.pt" \
+    --headless
+
+python scripts/rsl_rl/play.py \
+  --task=Tracking-Flat-G1-Wo-State-Estimation-v0 \
+  --num_envs=2 \
+  --wandb_path "1755247252-harbin-institute-of-technology/my_dance_project/g196x5gi/model_12500.pt"\
+  --headless
+
+# 清除所有代理相关变量
+unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy NO_PROXY no_proxy
+
+# 验证
+echo $HTTP_PROXY
+echo $HTTPS_PROXY
+
+# 测试连接
+curl -v https://api.wandb.ai/graphql

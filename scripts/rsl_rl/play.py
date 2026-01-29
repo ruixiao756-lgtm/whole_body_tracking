@@ -42,7 +42,9 @@ import gymnasium as gym
 import os
 import pathlib
 import torch
-
+# os.environ['HTTP_PROXY'] = 'http://127.0.0.1:7890'
+# os.environ['HTTPS_PROXY'] = 'http://127.0.0.1:7890'
+# os.environ["WANDB_BASE_URL"] = "https://api.bandw.top"
 from rsl_rl.runners import OnPolicyRunner
 
 from isaaclab.envs import (
@@ -74,7 +76,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     if args_cli.wandb_path:
         import wandb
-
+        # wandb.init(settings=wandb.Settings(init_timeout=120))
         run_path = args_cli.wandb_path
 
         api = wandb.Api()
