@@ -29,6 +29,12 @@ parser.add_argument(
     ),
 )
 parser.add_argument("--output_name", type=str, required=True, help="The name of the motion npz file.")
+parser.add_argument(
+    "--wandb_project",
+    type=str,
+    default=None,
+    help="WandB project name. If not set, use output_name (one project per motion).",
+)
 parser.add_argument("--output_fps", type=int, default=50, help="The fps of the output motion.")
 
 # append AppLauncher cli args
@@ -303,7 +309,8 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene, joi
             import wandb
 
             COLLECTION = args_cli.output_name
-            run = wandb.init(project="csv_to_npz", name=COLLECTION)
+            project_name = args_cli.wandb_project or COLLECTION
+            run = wandb.init(project=project_name, name=COLLECTION)
             print(f"[INFO]: Logging motion to wandb: {COLLECTION}")
             REGISTRY = "motions"
             logged_artifact = run.log_artifact(artifact_or_path="/tmp/motion.npz", name=COLLECTION, type=REGISTRY)
