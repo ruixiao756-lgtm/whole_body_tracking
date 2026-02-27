@@ -4,13 +4,13 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 
 @configclass
 class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 16  # 24->16: 更短的rollout
-    max_iterations = 25000  # 32000->24000: 8192envs样本多33%
+    num_steps_per_env = 24
+    max_iterations = 10000
     save_interval = 500
     experiment_name = "g1_flat"
     empirical_normalization = True
     policy = RslRlPpoActorCriticCfg(
-        init_noise_std=1.16,  # 1.0->1.2: 增强探索
+        init_noise_std=1.0,
         actor_hidden_dims=[512, 256, 128],
         critic_hidden_dims=[512, 256, 128],
         activation="elu",
@@ -18,15 +18,15 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,
         use_clipped_value_loss=True,
-        clip_param=0.21,  # 保持稳定值
-        entropy_coef=0.011,  # 0.005->0.016: 
+        clip_param=0.2,
+        entropy_coef=0.005,
         num_learning_epochs=5,
-        num_mini_batches=8,  # 6->8: 提升样本效率，改善后期增长
-        learning_rate=1.05e-3,  # 1.1e-3->1.0e-3: 稍降以提升稳定性
+        num_mini_batches=4,
+        learning_rate=1.0e-3,
         schedule="adaptive",
-        gamma=0.99,  # 0.992->0.985: 关键!降低适配16步rollout
-        lam=0.945,  # 0.95->0.93: 同上，适配更短时间跨度
-        desired_kl=0.0102,  # 0.0105->0.01: 稍降保稳定
+        gamma=0.99,
+        lam=0.95,
+        desired_kl=0.01,
         max_grad_norm=1.0,
     )
 

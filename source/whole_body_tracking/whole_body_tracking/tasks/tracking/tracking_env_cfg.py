@@ -27,14 +27,13 @@ import whole_body_tracking.tasks.tracking.mdp as mdp
 # Scene definition
 ##
 
-# 原值：x/y=±0.5, z=±0.2, roll/pitch=±0.52, yaw=±0.78
 VELOCITY_RANGE = {
-    "x": (-0.54, 0.54),      # 0.5 * 1.2
-    "y": (-0.54, 0.54),      # 0.5 * 1.2
-    "z": (-0.2, 0.2),    # 0.2 
-    "roll": (-0.56, 0.56),   # 0.52 * 1.2
-    "pitch": (-0.56, 0.56),  # 0.52 * 1.2
-    "yaw": (-0.95, 0.95),    # 0.78 * 1.2
+    "x": (-0.5, 0.5),
+    "y": (-0.5, 0.5),
+    "z": (-0.2, 0.2),
+    "roll": (-0.52, 0.52),
+    "pitch": (-0.52, 0.52),
+    "yaw": (-0.78, 0.78),
 }
 
 
@@ -87,13 +86,13 @@ class CommandsCfg:
         asset_name="robot",
         resampling_time_range=(1.0e9, 1.0e9),
         debug_vis=True,
-        pose_range={#修改
-            "x": (-0.03, 0.03),#0.05->0.06，修改
-            "y": (-0.03, 0.03),#0.05->0.06
-            "z": (-0.03, 0.03),#0.01->0.011
-            "roll": (-0.15, 0.15),#0.1->0.11
+        pose_range={
+            "x": (-0.05, 0.05),
+            "y": (-0.05, 0.05),
+            "z": (-0.01, 0.01),
+            "roll": (-0.1, 0.1),
             "pitch": (-0.1, 0.1),
-            "yaw": (-0.25, 0.25),#0.2->0.22
+            "yaw": (-0.2, 0.2),
         },
         velocity_range=VELOCITY_RANGE,
         joint_position_range=(-0.1, 0.1),
@@ -161,9 +160,9 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names=".*"),
-            "static_friction_range": (0.2, 1.8),  # 扩大范围：0.3-1.6 -> 0.2-1.8
-            "dynamic_friction_range": (0.2, 1.4),  # 扩大范围：0.3-1.2 -> 0.2-1.4
-            "restitution_range": (0.0, 0.6),  # 扩大范围：0.5 -> 0.6
+            "static_friction_range": (0.3, 1.6),
+            "dynamic_friction_range": (0.3, 1.2),
+            "restitution_range": (0.0, 0.5),
             "num_buckets": 64,
         },
     )
@@ -183,7 +182,7 @@ class EventCfg:
         mode="startup",
         params={
             "asset_cfg": SceneEntityCfg("robot", body_names="torso_link"),
-            "com_range": {"x": (-0.035, 0.035), "y": (-0.07, 0.07), "z": (-0.07, 0.07)},  # 增大40%
+            "com_range": {"x": (-0.025, 0.025), "y": (-0.05, 0.05), "z": (-0.05, 0.05)},
         },
     )
 
@@ -199,85 +198,57 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
-#dance12有一个还可以的policy
-    # 提升全局姿态稳定性权重（整体平衡比局部精度更重要！）
+
     motion_global_anchor_pos = RewTerm(
         func=mdp.motion_global_anchor_position_error_exp,
-        weight=0.6,  # 保持原值
-        params={"command_name": "motion", "std": 2.8},
+        weight=0.5,
+        params={"command_name": "motion", "std": 0.3},
     )
     motion_global_anchor_ori = RewTerm(
         func=mdp.motion_global_anchor_orientation_error_exp,
-        weight=0.6,  # 0.5->0.55: 提高姿态稳定性权重
-        params={"command_name": "motion", "std": 2.8},  # 3.0->2.5: 适度收紧
+        weight=0.5,
+        params={"command_name": "motion", "std": 0.4},
     )
-
     motion_body_pos = RewTerm(
         func=mdp.motion_relative_body_position_error_exp,
-        weight=1.0,  
-        params={"command_name": "motion", "std": 0.55},  # 0.6
+        weight=1.0,
+        params={"command_name": "motion", "std": 0.3},
     )
     motion_body_ori = RewTerm(
         func=mdp.motion_relative_body_orientation_error_exp,
-        weight=1.0,  
-        params={"command_name": "motion", "std": 1.4},  # 1.5
+        weight=1.0,
+        params={"command_name": "motion", "std": 0.4},
     )
     motion_body_lin_vel = RewTerm(
         func=mdp.motion_global_body_linear_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 1.8},  # 2.0: 恢复原始稳定值
+        params={"command_name": "motion", "std": 1.0},
     )
     motion_body_ang_vel = RewTerm(
         func=mdp.motion_global_body_angular_velocity_error_exp,
         weight=1.0,
-        params={"command_name": "motion", "std": 6.1},  # 6.28: 恢复原始稳定值
+        params={"command_name": "motion", "std": 3.14},
     )
-    # 平衡：适度约束动作变化，既允许快速平衡调整又防止过激动作
-    action_rate_l2 = RewTerm(
-        func=mdp.action_rate_l2, 
-        weight=-0.18  # -0.2
-    )
+    action_rate_l2 = RewTerm(func=mdp.action_rate_l2, weight=-1e-1)
     joint_limit = RewTerm(
         func=mdp.joint_pos_limits,
-        weight=-5.0,  # -5.0
+        weight=-10.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=[".*"])},
     )
-    # 激进化：强化非脚部接触惩罚以提升稳定性（mujoco sim增强）
     undesired_contacts = RewTerm(
         func=mdp.undesired_contacts,
-        weight=-0.15,  # 0.11
+        weight=-0.1,
         params={
             "sensor_cfg": SceneEntityCfg(
                 "contact_forces",
                 body_names=[
-                    r"^(?!left_ankle_roll_link$)(?!right_ankle_roll_link$)(?!left_wrist_yaw_link$)(?!right_wrist_yaw_link$)(?!left_knee_link$)(?!right_knee_link$).+$"
+                    r"^(?!left_ankle_roll_link$)(?!right_ankle_roll_link$)(?!left_wrist_yaw_link$)(?!right_wrist_yaw_link$).+$"
                 ],
             ),
             "threshold": 1.0,
         },
     )
-    # 关键：使用isaaclab内置的flat_orientation_l2惩罚后仰/前倾（独立于参考动作）
-    # flat_orientation = RewTerm(
-    #     func=mdp.flat_orientation_l2,
-    #     weight=-0.15,  # 负权重：惩罚偏离水平，强制保持直立
-    #     params={"asset_cfg": SceneEntityCfg("robot")},
-    # )
-    # # 新增：惩罚基座xy轴角速度（防止摇晃）
-    # ang_vel_xy = RewTerm(
-    #     func=mdp.ang_vel_xy_l2,
-    #     weight=-0.02,  # 轻微惩罚，防止剧烈摇晃
-    #     params={"asset_cfg": SceneEntityCfg("robot")},
-    # )
-    # feet_air_time = RewTerm(
-    #     func=mdp.feet_air_time,
-    #     weight=0.125,
-    #     params={
-    #         "sensor_cfg": SceneEntityCfg("contact_forces", body_names=".*FOOT"),
-    #         "command_name": "base_velocity",
-    #         "threshold": 0.5,
-    #     },
-    # )
-    
+
 
 @configclass
 class TerminationsCfg:
@@ -286,18 +257,17 @@ class TerminationsCfg:
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     anchor_pos = DoneTerm(
         func=mdp.bad_anchor_pos_z_only,
-        params={"command_name": "motion", "threshold": 0.43},  # 0.4
+        params={"command_name": "motion", "threshold": 0.25},
     )
     anchor_ori = DoneTerm(
         func=mdp.bad_anchor_ori,
-        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.85},  # 0.8
+        params={"asset_cfg": SceneEntityCfg("robot"), "command_name": "motion", "threshold": 0.8},
     )
-    # 平衡：适度收紧手脚位置终止阈值，提升泛化性
     ee_body_pos = DoneTerm(
         func=mdp.bad_motion_body_pos_z_only,
         params={
             "command_name": "motion",
-            "threshold": 0.41,  # 0.4: 收紧阈值，避免过度激进
+            "threshold": 0.25,
             "body_names": [
                 "left_ankle_roll_link",
                 "right_ankle_roll_link",
@@ -325,7 +295,7 @@ class TrackingEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
 
     # Scene settings
-    scene: MySceneCfg = MySceneCfg(num_envs=8192, env_spacing=20.0)
+    scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=2.5)
     # Basic settings
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
@@ -339,7 +309,7 @@ class TrackingEnvCfg(ManagerBasedRLEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # general settings
-        self.decimation = 5
+        self.decimation = 4
         self.episode_length_s = 10.0
         # simulation settings
         self.sim.dt = 0.005
