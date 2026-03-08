@@ -9,6 +9,16 @@ import wandb
 from whole_body_tracking.utils.exporter import attach_onnx_metadata, export_motion_policy_as_onnx
 
 
+def _wandb_is_offline() -> bool:
+    if wandb.run is None:
+        return False
+    mode = getattr(getattr(wandb.run, "settings", None), "mode", None)
+    if isinstance(mode, str) and mode.lower() == "offline":
+        return True
+    env_mode = os.environ.get("WANDB_MODE", "")
+    return env_mode.lower() == "offline"
+
+
 class MyOnPolicyRunner(OnPolicyRunner):
     def save(self, path: str, infos=None):
         """Save the model and training information."""
@@ -42,5 +52,6 @@ class MotionOnPolicyRunner(OnPolicyRunner):
 
             # link the artifact registry to this run
             if self.registry_name is not None:
-                wandb.run.use_artifact(self.registry_name)
+                if not _wandb_is_offline():
+                    wandb.run.use_artifact(self.registry_name)
                 self.registry_name = None
