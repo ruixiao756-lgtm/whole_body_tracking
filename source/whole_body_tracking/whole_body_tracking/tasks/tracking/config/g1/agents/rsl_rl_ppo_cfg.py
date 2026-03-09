@@ -10,13 +10,13 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
     experiment_name = "g1_flat"
     empirical_normalization = True
     policy = RslRlPpoActorCriticCfg(
-        init_noise_std=1.0,
+        init_noise_std=1.08,
         actor_hidden_dims=[1024, 512, 256],
         critic_hidden_dims=[1024, 512, 256],
         activation="elu",
     )
     algorithm = RslRlPpoAlgorithmCfg(
-        value_loss_coef=1.08,
+        value_loss_coef=1.0,
         use_clipped_value_loss=True,
         clip_param=0.2,
         entropy_coef=0.0054,
