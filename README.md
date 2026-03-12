@@ -165,11 +165,15 @@ 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
 
 python scripts/csv_to_npz.py     --input_file /home/abc/GMR/dancetocsv/csv/dance_retargeted.csv     --input_fps 30     --output_name dance     --headless
 
+python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/chicken_so_beautiful_fullbody_nons_grounded_v2.csv     --input_fps 30     --output_name chicken_so_beautiful_lower_to_the_ground     --headless
+
+python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/tennis.csv     --input_fps 30     --output_name tennis     --headless
+
  1677  python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/dance     --headless     --logger wandb     --log_project_name my_dance_project     --run_name dance_experiment
 
 python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/swing_amass     --headless     --logger wandb     --log_project_name swing_amass     --run_name swing_experiment1
 
-
+python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/tennis     --headless     --logger wandb     --log_project_name tennis     --run_name tennis_experiment1
 
 python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/walkbvh   --headless     --logger wandb     --log_project_name walkbvh    --run_name walkbvh_experiment
 
@@ -177,7 +181,7 @@ python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v
 
 python scripts/replay_npz.py --registry_name={your-organization}-org/wandb-registry-motions/{motion_name}
 
- python scripts/replay_npz.py --registry_name=1755247252-harbin-institute-of-technology-org/wandb-registry-motions/dance
+ python scripts/replay_npz.py --registry_name=1755247252-harbin-institute-of-technology-org/wandb-registry-motions/chicken_so_beautiful
 
  1755247252-harbin-institute-of-technology/my_dance_project/Tracking-Flat-G1-Wo-State-Estimation-v0/4b7qi9co
 
