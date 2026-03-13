@@ -167,6 +167,8 @@ python scripts/csv_to_npz.py     --input_file /home/abc/GMR/dancetocsv/csv/dance
 
 python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/chicken_so_beautiful_fullbody_nons_grounded_v2.csv     --input_fps 30     --output_name chicken_so_beautiful_lower_to_the_ground     --headless
 
+python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/chicken_so_beautiful_grounded_v2.csv     --input_fps 30     --output_name chicken_so_beautiful_grounded_v2    --headless
+
 python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/tennis.csv     --input_fps 30     --output_name tennis     --headless
 
  1677  python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/dance     --headless     --logger wandb     --log_project_name my_dance_project     --run_name dance_experiment
