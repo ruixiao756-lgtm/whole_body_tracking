@@ -167,6 +167,8 @@ python scripts/csv_to_npz.py     --input_file /home/abc/GMR/dancetocsv/csv/dance
 
 python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/chicken_so_beautiful_fullbody_nons_grounded_v2.csv     --input_fps 30     --output_name chicken_so_beautiful_lower_to_the_ground     --headless
 
+python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/chicken_so_beautiful_grounded_v2.csv     --input_fps 30     --output_name chicken_so_beautiful_grounded_v2    --headless
+
 python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/tennis.csv     --input_fps 30     --output_name tennis     --headless
 
 python scripts/csv_to_npz.py     --input_file dance2origin.csv     --input_fps 30     --output_name dance2origin     --headless
