@@ -4,7 +4,7 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 
 @configclass
 class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
-    num_steps_per_env = 60
+    num_steps_per_env = 48
     max_iterations = 8000
     save_interval = 300
     experiment_name = "g1_flat"
@@ -21,7 +21,7 @@ class G1FlatPPORunnerCfg(RslRlOnPolicyRunnerCfg):
         clip_param=0.2,
         entropy_coef=0.0053,
         num_learning_epochs=5,
-        num_mini_batches=50,
+        num_mini_batches=32,
         learning_rate=1.0e-3,
         schedule="adaptive",
         gamma=0.99,
