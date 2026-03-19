@@ -171,9 +171,11 @@ python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklf
 
 python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/tennis.csv     --input_fps 30     --output_name tennis     --headless
 
-python scripts/csv_to_npz.py     --input_file dance2origin.csv     --input_fps 30     --output_name dance2origin     --headless
+python scripts/csv_to_npz.py     --input_file dance2smoothed.csv     --input_fps 30     --output_name dance2smoothed     --headless
 
 python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/dance2origin     --headless     --logger wandb     --log_project_name dance2origin     --run_name dance2origin
+
+python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/dance2smoothed     --headless     --logger wandb     --log_project_name dance2smoothed     --run_name dance2smoothed
 
  1677  python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/dance     --headless     --logger wandb     --log_project_name my_dance_project     --run_name dance_experiment
 
