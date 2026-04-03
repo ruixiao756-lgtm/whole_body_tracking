@@ -171,7 +171,7 @@ python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklf
 
 python scripts/csv_to_npz.py     --input_file /home/abc/whole_body_tracking/pklfiles/csv/tennis.csv     --input_fps 30     --output_name tennis     --headless
 
-python scripts/csv_to_npz.py     --input_file dance2smoothed.csv     --input_fps 30     --output_name dance2smoothed     --headless
+python scripts/csv_to_npz.py     --input_file dance2_savgol_w13_p4.csv     --input_fps 30     --output_name dance2_savgol_w13_p4     --headless
 
 python scripts/rsl_rl/train.py     --task=Tracking-Flat-G1-Wo-State-Estimation-v0     --registry_name wandb-registry-motions/dance2origin     --headless     --logger wandb     --log_project_name dance2origin     --run_name dance2origin
 
@@ -204,6 +204,8 @@ python scripts/rsl_rl/play.py \
   --num_envs=2 \
   --wandb_path "1755247252-harbin-institute-of-technology/my_dance_project/g196x5gi/model_12500.pt"\
   --headless
+
+python scripts/rsl_rl/train.py --task=Tracking-Flat-G1-Wo-State-Estimation-v0 --registry_name wandb-registry-motions/dance2_savgol_w13_p4 --headless --logger wandb --log_project_name dance2_savgol_w13_p4 --run_name dance2_savgol_w13_p4 --resume True --load_run 2026-03-19_16-21-25_dance2_savgol_w13_p4
 
 # 清除所有代理相关变量
 unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy NO_PROXY no_proxy
